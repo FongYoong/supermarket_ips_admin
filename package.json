@@ -9,12 +9,40 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@mantine/core": "^4.2.2",
+    "@mantine/dates": "^4.2.2",
+    "@mantine/form": "^4.2.2",
+    "@mantine/hooks": "^4.2.2",
+    "@mantine/modals": "^4.2.2",
+    "@mantine/next": "^4.2.2",
+    "@mantine/notifications": "^4.2.2",
+    "axios": "^0.27.2",
+    "cloudinary": "^1.29.1",
+    "dayjs": "^1.11.1",
+    "filepond": "^4.30.3",
+    "filepond-plugin-file-validate-size": "^2.2.6",
+    "filepond-plugin-file-validate-type": "^1.2.7",
+    "filepond-plugin-image-exif-orientation": "^1.0.11",
+    "filepond-plugin-image-preview": "^4.6.11",
+    "firebase": "^9.7.0",
+    "framer-motion": "^6.3.3",
     "next": "12.1.6",
+    "nextjs-progressbar": "^0.0.14",
     "react": "18.1.0",
-    "react-dom": "18.1.0"
+    "react-dom": "18.1.0",
+    "react-filepond": "^7.1.1",
+    "react-icons": "^4.3.1",
+    "react-infinite-scroll-component": "^6.1.0",
+    "simple-react-lightbox": "^3.6.9-0"
   },
   "devDependencies": {
-    "eslint": "8.14.0",
-    "eslint-config-next": "12.1.6"
+    "@babel/eslint-parser": "^7.17.0",
+    "eslint": "^8.14.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-next": "12.1.6",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "eslint-plugin-react": "^7.29.4",
+    "eslint-plugin-react-hooks": "^4.5.0"
   }
 }

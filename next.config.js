@@ -1,6 +1,24 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-}
 
-module.exports = nextConfig
+// const withAntdLess = require('next-plugin-antd-less');
+
+// module.exports = withAntdLess({
+//   reactStrictMode: true,
+//   // modifyVars: { '@primary-color': '#04f' },
+//   lessVarsFilePath: './styles/variables.less',
+//   webpack(config) {
+//     return config;
+//   },
+// });
+
+// const nextConfig = {
+//   reactStrictMode: false,
+// }
+
+// module.exports = nextConfig
+
+module.exports = {
+  images: {
+    domains: ['res.cloudinary.com'],
+  },
+};
