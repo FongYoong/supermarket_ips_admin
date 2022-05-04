@@ -20,20 +20,24 @@ export default function Page({currentPage, children}) {
     const pageDetails = pages.find((page) => page.url == currentPage);
 
     return (
-        <AppShell
-            styles={(theme) => ({
-                main: { 
-                    backgroundColor: theme.colors.gray[0],
-                },
-            })}
-            padding="md"
-            navbarOffsetBreakpoint="sm"
-            asideOffsetBreakpoint="sm"
-            fixed
-            navbar={pageDetails.showNav ? <PageNavbar loading={authUser} currentPage={currentPage} navbarOpened={navbarOpened} setNavbarOpened={setNavbarOpened} /> : null}
-            header={<PageHeader title={pageDetails.title} showNavbar={pageDetails.showNav} navbarOpened={navbarOpened} setNavbarOpened={setNavbarOpened} />}
-            >
-            {children}
-        </AppShell>
+        <>
+        {pageDetails &&
+            <AppShell
+                styles={(theme) => ({
+                    main: { 
+                        backgroundColor: theme.colors.gray[0],
+                    },
+                })}
+                padding="md"
+                navbarOffsetBreakpoint="sm"
+                asideOffsetBreakpoint="sm"
+                fixed
+                navbar={pageDetails.showNav ? <PageNavbar loading={authUser} currentPage={currentPage} navbarOpened={navbarOpened} setNavbarOpened={setNavbarOpened} /> : null}
+                header={<PageHeader title={pageDetails.title} showNavbar={pageDetails.showNav} navbarOpened={navbarOpened} setNavbarOpened={setNavbarOpened} />}
+                >
+                {children}
+            </AppShell>
+        }
+        </>
   )
 }
