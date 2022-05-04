@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import { Box, Button, Text, Skeleton, Card, Group, Stack, Badge, MultiSelect, ActionIcon, TextInput, Divider, useMantineTheme } from '@mantine/core';
 import { getProducts, detachProductListeners } from '../lib/clientDb'
 import { productCategories } from '../lib/constants'
-import InfiniteScroll from 'react-infinite-scroll-component';
+//import InfiniteScroll from 'react-infinite-scroll-component';
 import { AiOutlinePlusSquare } from 'react-icons/ai';
 import { FcAlphabeticalSortingAz, FcAlphabeticalSortingZa } from 'react-icons/fc';
 import { FiClock } from 'react-icons/fi';
-import ProductEditModal from '../components/ProductEditModal';
-import ProductDetailsModal from '../components/ProductDetailsModal';
-import ProductDeleteModal from '../components/ProductDeleteModal';
+
+const ProductEditModal = dynamic(() => import('../components/ProductEditModal'))
+const ProductDetailsModal = dynamic(() => import('../components/ProductDetailsModal'))
+const ProductDeleteModal = dynamic(() => import('../components/ProductDeleteModal'))
 
 const ProductCard = ({data, onDetails, onEdit, onDelete}) => {
   const [showOptions, setShowOptions] = useState(false);

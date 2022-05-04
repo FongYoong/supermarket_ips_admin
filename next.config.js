@@ -17,8 +17,16 @@
 
 // module.exports = nextConfig
 
-module.exports = {
-  images: {
-    domains: ['res.cloudinary.com'],
-  },
-};
+// module.exports = {
+//   images: {
+//     domains: ['res.cloudinary.com'],
+//   },
+// };
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: true,
+})
+module.exports = withBundleAnalyzer({
+    images: {
+      domains: ['res.cloudinary.com'],
+    },
+})
