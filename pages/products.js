@@ -199,7 +199,7 @@ export default function Products() {
       }} />
       <ProductDetailsModal data={initialProductData} show={showDetailsModal} setShow={setShowDetailsModal} />
       <ProductDeleteModal data={initialProductData} show={showDeleteModal} setShow={setShowDeleteModal} onSuccess={() => setShowDeleteModal(false)} />
-      <Group position='center' align='flex-end' >
+      <Group position='left' align='flex-end' >
         <Button leftIcon={<AiOutlinePlusSquare size={24} />} color='green'
           onClick={() => {
             setEditProduct(false);
@@ -209,7 +209,7 @@ export default function Products() {
           Add Product
         </Button>
       </Group>
-      <Group position='center' align='flex-end' >
+      <Group position='left' align='flex-end' >
         <MultiSelect
           data={productCategories.map((cat) => {
             return {

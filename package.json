@@ -16,6 +16,7 @@
     "@mantine/modals": "^4.2.2",
     "@mantine/next": "^4.2.2",
     "@mantine/notifications": "^4.2.2",
+    "@uiball/loaders": "^1.2.6",
     "axios": "^0.27.2",
     "cloudinary": "^1.29.1",
     "dayjs": "^1.11.1",
