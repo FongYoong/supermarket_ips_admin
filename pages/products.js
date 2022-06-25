@@ -1,10 +1,16 @@
 import { useState, useEffect } from 'react';
-import Image from 'next/image'
 import dynamic from 'next/dynamic'
+import { Image } from '../components/Image';
 import { Box, Button, Text, Skeleton, Card, Group, Stack, Badge, MultiSelect, ActionIcon, TextInput, Divider, useMantineTheme } from '@mantine/core';
-import { getProducts, detachProductListeners } from '../lib/clientDb'
-import { productCategories } from '../lib/constants'
-//import InfiniteScroll from 'react-infinite-scroll-component';
+import { useDatabaseSnapshot  } from "@react-query-firebase/database";
+import { getProductsRef, toArray } from '../lib/clientDb'
+import { productCategories } from '../lib/constants';
+const productCategoriesForFilter = productCategories.map((cat) => {
+  return {
+    value: cat.name,
+    label: cat.name
+  }
+});
 import { AiOutlinePlusSquare } from 'react-icons/ai';
 import { FcAlphabeticalSortingAz, FcAlphabeticalSortingZa } from 'react-icons/fc';
 import { FiClock } from 'react-icons/fi';
@@ -34,12 +40,11 @@ const ProductCard = ({data, onDetails, onEdit, onDelete}) => {
         onClick={() => setShowOptions(true)}
       >
         <Card.Section>
-          {/* <Image src="./image.png" height={160} alt="Norway" /> */}
           <Box style={{
             position: 'relative',
             height: 84.375,
           }}>
-            <Image src={data.imageUrl} alt={data.name} layout='fill' objectFit='cover' />
+            <Image src={data.imageUrl} alt={data.name} layout='fill' objectFit='contain' />
             <Text size="sm" style={{
               position: 'absolute',
               top: 0,
@@ -54,11 +59,15 @@ const ProductCard = ({data, onDetails, onEdit, onDelete}) => {
             </Text>
           </Box>
         </Card.Section>
+        <Text weight={700} lineClamp={2} style={{ marginBottom: 5, marginTop: theme.spacing.sm, }} 
+        >
+          {data.name}
+        </Text>
+        <div style={{ flex: 1 }} />
         <Text weight={500} style={{ marginBottom: 5, marginTop: theme.spacing.sm, }} 
         >
-        {data.name}
+          RM {data.price.toFixed(2)}
         </Text>
-        <div style={{flex: 2}}/>
         <Badge color={productCategory.color} variant="light">
           {data.category}
         </Badge>
@@ -72,7 +81,6 @@ const ProductCard = ({data, onDetails, onEdit, onDelete}) => {
             position: 'absolute',
             width: '100%',
             height: '100%',
-            //paddingTop: '20%',
             top: 0,
             left: 0,
             transition: 'opacity 0.2s',
@@ -86,7 +94,7 @@ const ProductCard = ({data, onDetails, onEdit, onDelete}) => {
           }}
         >
           <Stack spacing='0' >
-            <Text p='xs' weight={700} >Last updated: {new Date(data.dateModified ? data.dateModified : data.dateCreated).toLocaleString('en-GB', { timeZone: 'UTC' }) }</Text>
+            <Text p='xs' weight={700} >Last updated: {new Date(data.dateModified ? data.dateModified : data.dateCreated).toLocaleString('en-GB') }</Text>
             <Button color="green" size='xs' fullWidth onClick={() => {
               if(showOptions) {
                 onDetails(data)
@@ -109,7 +117,7 @@ const ProductCard = ({data, onDetails, onEdit, onDelete}) => {
               Delete
             </Button>
           </Stack>
-          </Box>
+        </Box>
       </Card>
   )
 }
@@ -125,57 +133,36 @@ export default function Products() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editProduct, setEditProduct] = useState(false);
   const [initialProductData, setInitialProductData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [originalProducts, setOriginalProducts] = useState([]);
-  const [products, setProducts] = useState([]);
-  //console.log(products)
-
-  useEffect(() => {
-    getProducts(true, (data) => {
-      setLoading(false);
-      if (data) {
-        const formatted = Object.keys(data).map((productId) => {
-          return {
-            productId,
-            ...data[productId]
-          }
-        });
-        setOriginalProducts(formatted);
-      }
-      else {
-        setOriginalProducts([]);
-      }
-    }, (error) => {
-      setLoading(false);
-      setOriginalProducts([]);
-      console.error(`Fail: ${error}`);
-    });
-    return () => detachProductListeners();
-  }, [])
-
-  useEffect(() => {
-    if (originalProducts) {
-      const filtered = originalProducts.filter((prod) => {
-        if (categoryFilter.length > 0 && !categoryFilter.includes(prod.category)) {
-          return false;
-        }
-        if (searchName) {
-          return prod.name.includes(searchName);
-        }
-        return true;
-        
-      });
-      filtered.sort((a, b) => {
-        if (sortType == 'alphabet') {
-          return sortDescending ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name)
-        }
-        else if (sortType == 'dateModified') {
-          return sortDescending ? b.dateModified - a.dateModified : a.dateModified - b.dateModified;
-        }
-      });
-      setProducts(filtered);
-    }
-  }, [originalProducts, sortType, sortDescending, categoryFilter, searchName])
+  const productsRef = getProductsRef(categoryFilter[0]);
+  const productsQuery = useDatabaseSnapshot(["products"], productsRef,
+    {
+        subscribe: true,
+    },
+    {
+        select: (result) => {
+          const products = toArray(result);
+          const filtered = products.filter((prod) => {
+            if (categoryFilter.length > 0 && !categoryFilter.includes(prod.category)) {
+              return false;
+            }
+            if (searchName) {
+              return prod.name.toLowerCase().includes(searchName);
+            }
+            return true;
+            
+          });
+          filtered.sort((a, b) => {
+            if (sortType == 'alphabet') {
+              return sortDescending ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name)
+            }
+            else if (sortType == 'dateModified') {
+              return sortDescending ? b.dateModified - a.dateModified : a.dateModified - b.dateModified;
+            }
+          });
+          return filtered;
+        },
+        refetchOnMount: "always",
+  });
 
   const onDetails = (data) => {
     setShowDetailsModal(true);
@@ -193,9 +180,8 @@ export default function Products() {
     setInitialProductData(data);
   }
 
-
   return (
-    <Stack sx={{ maxWidth: '100%' }} mx="auto">
+    <Stack sx={{ maxWidth: '100%', height: '100%' }} mx="auto">
       <ProductEditModal edit={editProduct} initialData={initialProductData} show={showProductEditModal} setShow={setShowProductEditModal} onSuccess={() => {
         setShowProductEditModal(false);
       }} />
@@ -213,12 +199,7 @@ export default function Products() {
       </Group>
       <Group position='left' align='flex-end' >
         <MultiSelect
-          data={productCategories.map((cat) => {
-            return {
-              value: cat.name,
-              label: cat.name
-            }
-          })}
+          data={productCategoriesForFilter}
           onChange={(value) => {
             setCategoryFilter(value);
           }}
@@ -264,13 +245,70 @@ export default function Products() {
         </Group>
       </Group>
       <Divider />
-      <Skeleton visible={loading} style={{width: '100%'}} >
-        {/* <Text>Some table of products below</Text> */}
-        <Group align='stretch' >
-          {products.map((data, index) => <ProductCard key={index} data={data} onDetails={onDetails} onEdit={onEdit} onDelete={onDelete} />)}
-        </Group>
+      <Skeleton visible={productsQuery.isLoading || !productsQuery.isSuccess} style={{width: '100%', flexGrow: 1}} >
+          <Group align='stretch' style={{}} >
+            {productsQuery.isSuccess && productsQuery.data.map((data, index) => 
+              <ProductCard key={data.name} data={data} onDetails={onDetails} onEdit={onEdit} onDelete={onDelete} />
+            )}
+          </Group>
       </Skeleton>
-      
+    </Stack>
+  )
+}
+
+  // const [filteredProducts, setFilteredProducts] = useState([]);
+
+  // useEffect(() => {
+  //   if (productsQuery.data) {
+  //     const filtered = productsQuery.data.filter((prod) => {
+  //       if (categoryFilter.length > 0 && !categoryFilter.includes(prod.category)) {
+  //         return false;
+  //       }
+  //       if (searchName) {
+  //         return prod.name.toLowerCase().includes(searchName);
+  //       }
+  //       return true;
+        
+  //     });
+  //     filtered.sort((a, b) => {
+  //       if (sortType == 'alphabet') {
+  //         return sortDescending ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name)
+  //       }
+  //       else if (sortType == 'dateModified') {
+  //         return sortDescending ? b.dateModified - a.dateModified : a.dateModified - b.dateModified;
+  //       }
+  //     });
+  //     setFilteredProducts(filtered);
+  //   }
+  // }, [productsQuery.data, sortType, sortDescending, categoryFilter, searchName])
+
+  // const [loading, setLoading] = useState(true);
+  // const [originalProducts, setOriginalProducts] = useState([]);
+  // const [products, setProducts] = useState([]);
+
+  // useEffect(() => {
+  //   getProducts(true, (data) => {
+  //     setLoading(false);
+  //     if (data) {
+  //       const formatted = Object.keys(data).map((productId) => {
+  //         return {
+  //           productId,
+  //           ...data[productId]
+  //         }
+  //       });
+  //       setOriginalProducts(formatted);
+  //     }
+  //     else {
+  //       setOriginalProducts([]);
+  //     }
+  //   }, (error) => {
+  //     setLoading(false);
+  //     setOriginalProducts([]);
+  //     console.error(`Fail: ${error}`);
+  //   });
+  //   return () => detachProductListeners();
+  // }, [])
+
       {/* <InfiniteScroll
         dataLength={songsScrollData.length}
         next={fetchMoreSongs}
@@ -296,7 +334,3 @@ export default function Products() {
             )
         }
       </InfiniteScroll> */}
-    </Stack>
-    
-  )
-}

@@ -10,7 +10,7 @@ function ProductDetailsModal({data, show, setShow, onSuccess}) {
             console.log("Firebase Success");
             showNotification({
                 title: `Deleted ${data.category} product!`,
-                message: `Name: ${data.name}, Quantity: ${data.quantity}`,
+                message: `Name: ${data.name}, Quantity: ${data.quantity}, Price: RM ${data.price.toFixed(2)}`,
                 autoClose: 4000
             });
             onSuccess();
@@ -19,7 +19,7 @@ function ProductDetailsModal({data, show, setShow, onSuccess}) {
             alert("Firebase Error");
             console.log(e)
         };
-        deleteProduct(data.productId, successHandler, errorHandler);
+        deleteProduct(data.id, successHandler, errorHandler);
     }
 
     return (

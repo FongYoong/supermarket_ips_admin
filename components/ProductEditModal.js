@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Stack, Loader, TextInput, NumberInput, Button, Group, NativeSelect, Modal, Stepper, Collapse, Alert, LoadingOverlay } from '@mantine/core';
+import { Stack, Text, Loader, TextInput, NumberInput, Button, Group, NativeSelect, Modal, Stepper, Collapse, Alert, LoadingOverlay } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import { getCloudinarySignature, uploadImages, addProduct, editProduct } from '../lib/clientDb'
@@ -34,7 +34,7 @@ const isInvalidName = (value) => {
     return value.length <= 0 || /^\s+$/.test(value);
 }
 
-function ProductModal({show, setShow, onSuccess, edit=false, initialData}) {
+function ProductEditModal({show, setShow, onSuccess, edit=false, initialData}) {
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [formIndex, setFormIndex] = useState(0);
@@ -42,6 +42,7 @@ function ProductModal({show, setShow, onSuccess, edit=false, initialData}) {
         initialValues: {
           name: '',
           quantity: 0,
+          price: 0,
           category: 'Dairy',
         },
         validate: {
@@ -68,6 +69,7 @@ function ProductModal({show, setShow, onSuccess, edit=false, initialData}) {
             form.setValues({
                 name: initialData.name,
                 quantity: initialData.quantity,
+                price: initialData.price,
                 category: initialData.category,
             })
             setImageFiles([{
@@ -97,7 +99,7 @@ function ProductModal({show, setShow, onSuccess, edit=false, initialData}) {
                 }
             )
         });
-      }
+    }
     
     const addOrEditProductInFirebase = (imageUrl) => {
         const data = {
@@ -106,17 +108,18 @@ function ProductModal({show, setShow, onSuccess, edit=false, initialData}) {
         };
         const successHandler = () => {
             console.log("Firebase Success");
+            const message = `Name: ${form.values.name}, Quantity: ${form.values.quantity}, Price: RM ${form.values.price.toFixed(2)}`;
             if (edit) {
                 showNotification({
                     title: `Edited ${form.values.category} product!`,
-                    message: `Name: ${form.values.name}, Quantity: ${form.values.quantity}`,
+                    message,
                     autoClose: 4000
                 });
             }
             else {
                 showNotification({
                     title: `Added ${form.values.category} product!`,
-                    message: `Name: ${form.values.name}, Quantity: ${form.values.quantity}`,
+                    message,
                     autoClose: 4000
                 });
             }
@@ -128,7 +131,7 @@ function ProductModal({show, setShow, onSuccess, edit=false, initialData}) {
             alert("Firebase Error");
         };
         if (edit) {
-            editProduct(initialData.productId, data, successHandler, errorHandler);
+            editProduct(initialData.id, data, successHandler, errorHandler);
         }
         else {
             addProduct(data, successHandler, errorHandler);
@@ -177,6 +180,16 @@ function ProductModal({show, setShow, onSuccess, edit=false, initialData}) {
                                 placeholder="Type here"
                                 min={0}
                                 {...form.getInputProps('quantity')}
+                            />
+                            <NumberInput
+                                required
+                                label="Price"
+                                placeholder="Type here"
+                                icon={<Text size='sm' weight={500} >RM</Text>}
+                                min={0}
+                                step={0.05}
+                                precision={2}
+                                {...form.getInputProps('price')}
                             />
                             <NativeSelect
                                 required
@@ -251,4 +264,4 @@ function ProductModal({show, setShow, onSuccess, edit=false, initialData}) {
         </Modal>
     )
 }
-export default ProductModal;
+export default ProductEditModal;

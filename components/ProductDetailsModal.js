@@ -22,7 +22,7 @@ function ProductDetailsModal({data, show, setShow}) {
                     <Stack>
                         <Box mx='auto' >
                             <SRLWrapper>
-                                <Image src={data.imageUrl} alt={data.name} height={150} width={267} />
+                                <Image src={data.imageUrl} alt={data.name} height={150} width={267} objectFit="contain" />
                             </SRLWrapper>
                         </Box>
                         <Divider />
@@ -31,6 +31,9 @@ function ProductDetailsModal({data, show, setShow}) {
                         </Text>
                         <Text size="md">
                             Quantity: {data.quantity > 0 ? `${data.quantity}` : 'Out of stock' }
+                        </Text>
+                        <Text size="md">
+                            Price: RM {data.price.toFixed(2)}
                         </Text>
                         <Text size="md">
                             Category: {data.category }
