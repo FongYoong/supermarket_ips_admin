@@ -73,7 +73,7 @@ function ProductEditModal({show, setShow, onSuccess, edit=false, initialData}) {
                 category: initialData.category,
             })
             setImageFiles([{
-                source: initialData.imageUrl,
+                source: initialData.imageUrl.replace('http://','https://'),
                 options: {
                     type: "local"
                 }
