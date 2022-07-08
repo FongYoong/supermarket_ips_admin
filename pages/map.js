@@ -1,12 +1,25 @@
 import { useState } from 'react';
-import { AppShell, Navbar, Header, Button, Text, MediaQuery, Burger } from '@mantine/core';
-import Head from '../components/Head'
-import Page from '../components/Page'
+import { Stack, Checkbox, Button, Box, Text, MediaQuery } from '@mantine/core';
+import SupermarketMap from '../components/map/SupermarketMap';
 import { GrOverview } from 'react-icons/gr';
 
 export default function Map() {
 
+  const [showGrid, setShowGrid] = useState(false);
+
   return (
-    <Text>This is the map page</Text>
+    <Stack>
+        {/* <Text>This is a map component</Text> */}
+        <Checkbox
+          label="Show Grid"
+          onChange={(e) => setShowGrid(e.currentTarget.checked)}
+        />
+        <SupermarketMap
+          style={{
+            height: '70vh'
+          }}
+          showGrid={showGrid}
+        />
+    </Stack>
   )
 }

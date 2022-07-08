@@ -3,11 +3,13 @@ import { Stack, Text, Loader, TextInput, NumberInput, Button, Group, NativeSelec
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import { getCloudinarySignature, uploadImages, addProduct, editProduct } from '../lib/clientDb'
-import { productCategories } from '../lib/constants'
+import SupermarketMap from '../components/map/SupermarketMap';
+import { productCategories } from '../lib/supermarket_products'
 import { AiOutlineRight } from 'react-icons/ai'
 import { ImCross, ImCheckmark } from 'react-icons/im'
 import { IoMdImages } from 'react-icons/io'
 import { BsPencilSquare } from 'react-icons/bs'
+import { BiMapPin } from 'react-icons/bi'
 
 // File Pond
 import { FilePond, registerPlugin } from 'react-filepond'; // Import React FilePond
@@ -34,6 +36,10 @@ const isInvalidName = (value) => {
     return value.length <= 0 || /^\s+$/.test(value);
 }
 
+const isInvalidNumber = (value) => {
+    return value === undefined;
+}
+
 function ProductEditModal({show, setShow, onSuccess, edit=false, initialData}) {
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -49,13 +55,17 @@ function ProductEditModal({show, setShow, onSuccess, edit=false, initialData}) {
             name: (value) => isInvalidName(value) ? 'Invalid name' : null,
         },
     });
+    const [mapPin, setMapPin] = useState(null);
     const [imageFiles, setImageFiles] = useState([]);
-    const invalidName = isInvalidName(form.values.name);
+    const invalidForm = isInvalidName(form.values.name) || isInvalidNumber(form.values.quantity) || isInvalidNumber(form.values.price);
+    const invalidMapPin = mapPin === null;
     const invalidImage = imageFiles.length <= 0;
+    const invalidSubmit = invalidForm || invalidMapPin || invalidImage;
 
     const reset = () => {
         setFormIndex(0);
         form.reset();
+        setMapPin(null);
         setImageFiles([]);
         setUploading(false);
         setUploadProgress(0);
@@ -72,6 +82,12 @@ function ProductEditModal({show, setShow, onSuccess, edit=false, initialData}) {
                 price: initialData.price,
                 category: initialData.category,
             })
+            if (initialData.mapPin) {
+                setMapPin(initialData.mapPin)
+            }
+            else {
+                setMapPin(null);
+            }
             setImageFiles([{
                 source: initialData.imageUrl.replace('http://','https://'),
                 options: {
@@ -82,7 +98,7 @@ function ProductEditModal({show, setShow, onSuccess, edit=false, initialData}) {
         else {
             reset();
         }
-    }, [edit, initialData])
+    }, [show, edit, initialData])
 
     const uploadProduct = () => {
         setUploading(true);
@@ -104,6 +120,7 @@ function ProductEditModal({show, setShow, onSuccess, edit=false, initialData}) {
     const addOrEditProductInFirebase = (imageUrl) => {
         const data = {
             ...form.values,
+            mapPin,
             imageUrl,
         };
         const successHandler = () => {
@@ -140,6 +157,7 @@ function ProductEditModal({show, setShow, onSuccess, edit=false, initialData}) {
 
     return (
         <Modal
+            size='lg'
             opened={show}
             onClose={() => setShow(false)}
             title={edit ? 'Edit Product' : 'Add Product'}
@@ -156,9 +174,9 @@ function ProductEditModal({show, setShow, onSuccess, edit=false, initialData}) {
                 }
 
             />
-            <Stepper active={formIndex} onStepClick={setFormIndex} orientation="horizontal" mr={20} >
-                <Stepper.Step color={invalidName ? "red" : "green"}
-                    icon={<BsPencilSquare />} completedIcon={invalidName ? <ImCross /> : <ImCheckmark />}
+            <Stepper active={formIndex} onStepClick={setFormIndex} orientation="horizontal" breakpoint="sm" mr={20} >
+                <Stepper.Step color={invalidForm ? "red" : "green"}
+                    icon={<BsPencilSquare />} completedIcon={invalidForm ? <ImCross /> : <ImCheckmark />}
                     label="Fill up" description="Details"
                 >
                     <form onChange={() => {
@@ -200,11 +218,45 @@ function ProductEditModal({show, setShow, onSuccess, edit=false, initialData}) {
                             />
                         </Stack>
                         <Group position="right" mt="md">
-                            <Button type="submit" leftIcon={<AiOutlineRight size={14} />} color={invalidName ? "red" : "green"} variant={invalidName ? 'outline': 'filled'} >
+                            <Button type="submit" leftIcon={<AiOutlineRight size={14} />} color={invalidForm ? "red" : "green"} variant={invalidForm ? 'outline': 'filled'} >
                                 Next
                             </Button>
                         </Group>
                     </form>
+                </Stepper.Step>
+                <Stepper.Step color={invalidMapPin ? "red" : "green"}
+                    icon={<BiMapPin />} completedIcon={invalidMapPin ? <ImCross /> : <ImCheckmark />}
+                    label="Map" description="Position"
+                >
+                    <Group position="center" mt="md" mb='sm' spacing='xs' >
+                        <Text color="dimmed" >
+                            Category:
+                        </Text>
+                        <Text weight={800} >{form.values.category}</Text>
+                    </Group>
+                    <SupermarketMap
+                        style={{
+                            width: '100%',
+                            height: '50vh'
+                        }}
+                        showGrid
+                        editGrid
+                        enableShelfSelect={false}
+                        categories={[form.values.category]}
+                        initialSelectedGridPoint={mapPin}
+                        onGridClick={(value) => {
+                            setMapPin(value);
+                        }}
+                    />
+                    <Group position="right" mt="md">
+                        <Button leftIcon={<AiOutlineRight size={14} />} color={invalidMapPin ? "red" : "green"} variant={invalidMapPin ? 'outline': 'filled'}
+                            onClick={() => {
+                                setFormIndex(2);
+                            }}
+                        >
+                            Next
+                        </Button>
+                    </Group>
                 </Stepper.Step>
                 <Stepper.Step color={invalidImage > 0 ? "red" : "green"} icon={<IoMdImages />} loading={uploading}
                     label="Upload" description="Image">
@@ -247,9 +299,9 @@ function ProductEditModal({show, setShow, onSuccess, edit=false, initialData}) {
                             </Alert>
                         </Collapse> */}
                     <Group position="right" mt="md">
-                        <Button leftIcon={<AiOutlineRight size={14} />} color={invalidName || invalidImage ? "red" : "green"} variant={invalidName || invalidImage ? 'outline': 'filled'} 
+                        <Button leftIcon={<AiOutlineRight size={14} />} color={invalidSubmit ? "red" : "green"} variant={invalidSubmit ? 'outline': 'filled'} 
                                 onClick={() => {
-                                    if (!invalidName && !invalidImage) {
+                                    if (!invalidSubmit) {
                                         uploadProduct();
                                     }
                                 }}

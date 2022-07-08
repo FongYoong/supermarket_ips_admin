@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Stack, Text, Box, Button, Divider, NativeSelect, Modal } from '@mantine/core';
-import { productCategories } from '../lib/constants'
-import { AiOutlineRight } from 'react-icons/ai'
 import SimpleReactLightbox, { SRLWrapper } from 'simple-react-lightbox'
+import SupermarketMap from './map/SupermarketMap'
 
 
 function ProductDetailsModal({data, show, setShow}) {
@@ -13,8 +12,9 @@ function ProductDetailsModal({data, show, setShow}) {
             <Modal
                 opened={show}
                 onClose={() => setShow(false)}
+                size='lg'
                 title="View Product"
-                transition="slide-up"
+                transition="pop"
                 transitionDuration={300}
                 transitionTimingFunction="ease"
             >
@@ -38,6 +38,16 @@ function ProductDetailsModal({data, show, setShow}) {
                         <Text size="md">
                             Category: {data.category }
                         </Text>
+                        <SupermarketMap
+                            style={{
+                                width: '100%',
+                                height: '50vh'
+                            }}
+                            showGrid
+                            enableShelfSelect={false}
+                            categories={[data.category]}
+                            initialSelectedGridPoint={data.mapPin}
+                        />
                     </Stack>
                 }
             </Modal>

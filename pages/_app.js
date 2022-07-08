@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { MantineProvider } from '@mantine/core';
 import { NotificationsProvider } from '@mantine/notifications';
-import { useQueryClient, QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClient, QueryClientProvider } from 'react-query';
 import { AuthUserProvider } from '../lib/firebaseAuth';
-import Head from '../components/Head'
 import Page from '../components/Page'
 import NextNProgress from 'nextjs-progressbar'
 import { LazyMotion, AnimatePresence, domAnimation, m } from "framer-motion";
@@ -69,7 +68,6 @@ function MyApp({ Component, pageProps }) {
           >
             <NotificationsProvider>
               <NextNProgress />
-              <Head title={router.pathname} />
               {!loadedFirstTime ?
                 <div style={{height: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}} >
                   <JellyTriangle 
