@@ -1,36 +1,57 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Text, Button, Box } from '@mantine/core';
+import { forwardRef, useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { Stack, Group, Text, NumberInput, Button, Box, Slider } from '@mantine/core';
+import { useDatabaseSnapshot  } from "@react-query-firebase/database";
+import { getTrolleyHistoryRef, toArray } from '../../lib/clientDb';
 import * as THREE from "three";
-import { Canvas, useThree } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { MapControls, PerspectiveCamera } from "@react-three/drei";
+import { Line } from "./Line";
 import { FloorMesh } from "./FloorMesh";
-import { generalDimensions, cameraParameters, sections, gridDimensions } from '../../lib/supermarket_layout';
+import { threeDimensions, cameraParameters, sections, gridDimensions } from '../../lib/supermarket_layout';
+import { rawGrid, stringToPhysicalCoordinates, physicalCoordinatesToThreeCoordinates } from "../../lib/supermarket_grid";
 import { ShelfMesh } from "./ShelfMesh";
 import { GridPoint } from "./GridPoint";
-import { rawGrid } from "../../lib/supermarket_grid";
 import { Waveform } from '@uiball/loaders'
+import { TrolleyMesh } from "./TrolleyMesh";
+import { TrolleyHistory } from "./MapUIElements";
+
 
 
 const degToRad = degrees => degrees * (Math.PI / 180);
 
-function SupermarketMap ({showGrid=false, editGrid=false, enableShelfSelect=true, categories=[], initialSelectedGridPoint=null, onGridClick, ...props}) {
+const maxHistoryQueryLimit = 15;
 
-    // const topLight = new THREE.DirectionalLight(0xffffff, 0.2);
-    // topLight.position.set(0, 10, 0);
-    // topLight.target = floor;
-    // scene.add(topLight);
-    // const xLightLeft = new THREE.DirectionalLight(0xffffff, 0.8);
-    // xLightLeft.position.set(-30, 10, 0);
-    // xLightLeft.target = floor;
-    // scene.add(xLightLeft);
-    // const xLightRight = new THREE.DirectionalLight(0xffffff, 0.8);
-    // xLightRight.position.set(30, 10, 0);
-    // xLightRight.target = floor;
-    // scene.add(xLightRight);
-    // const zLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    // zLight.position.set(0, 10, 30);
-    // zLight.target = floor;
-    // scene.add(zLight);
+// eslint-disable-next-line react/display-name
+const SupermarketMap = forwardRef(({
+    showGrid=false, editGrid=false, initialSelectedGridPoint=null, onGridClick,
+    showShelves=true, enableShelfSelect=true, categories=[],
+    trolleys=[], onTrolleyClick,
+    selectedTrolley, deselectTrolley,
+    ...props
+}, ref) => {
+
+    const [historyQueryLimit, setHistoryQueryLimit] = useState(5);
+    const selectedTrolleyId = selectedTrolley ? selectedTrolley.id : 'undefined';
+    const trolleyHistoryRef = useMemo(() => {
+        return getTrolleyHistoryRef(selectedTrolleyId, maxHistoryQueryLimit);
+    }, [selectedTrolleyId]);
+    const trolleyHistoryQuery = useDatabaseSnapshot(["trolley_past_data", selectedTrolleyId], trolleyHistoryRef,
+    {
+        subscribe: true,
+    },
+    {
+        select: (result) => {
+          const historyData = toArray(result).map((data) => {
+            const coordinates = stringToPhysicalCoordinates(data.coordinates);
+            return {
+              ...data,
+              coordinates,
+              dateCreated: new Date(data.dateCreated)
+            }
+          }).reverse();
+          return historyData;
+        },
+    });
 
     const controlsRef = useRef();
     const cameraRef = useRef();
@@ -48,40 +69,45 @@ function SupermarketMap ({showGrid=false, editGrid=false, enableShelfSelect=true
     }, [controlsRef.current])
 
     const shelves = useMemo(() => [].concat(...sections.map((section, i) => {
-        const sectionShelves = section.models.map((model, j) => {
-            return (
-                <ShelfMesh key={`shelves${i}-${j}`}
-                    enabled={categories.length > 0 && categories.includes(section.productCategory) || categories.length <= 0 }
-                    enableSelect={enableShelfSelect}
-                    metadata={model}
-                    position={[model.position.x, model.position.y, model.position.z]}
-                    rotateY={degToRad(model.rotationY)}
-                    onHover={(material) => {
-                        if (hoveredMaterialRef.current) {
-                            hoveredMaterialRef.current.emissiveIntensity = 0;
-                        }
-                        hoveredMaterialRef.current = material;
-                        hoveredMaterialRef.current.emissiveIntensity = 0.3;
-                    }}
-                    onHoverExit={() => {
-                        if (hoveredMaterialRef.current) {
-                            hoveredMaterialRef.current.emissiveIntensity = 0;
-                        }
-                        hoveredMaterialRef.current = null;
-                    }}
-                    onSelect={(boundingBox) => {
-                        if (selectedBoundingBoxRef.current) {
-                            selectedBoundingBoxRef.current.visible = false;
-                        }
-                        selectedBoundingBoxRef.current = boundingBox;
-                        boundingBox.visible = true;
-                        setSelectedSection(section);
-                    }}
-                />
-            )
-        })
-        return sectionShelves;
-    })), []);
+        if (showShelves) {
+            const sectionShelves = section.models.map((model, j) => {
+                return (
+                    <ShelfMesh key={`shelves${i}-${j}`}
+                        enabled={categories.length > 0 && categories.includes(section.productCategory) || categories.length <= 0 }
+                        enableSelect={enableShelfSelect}
+                        metadata={model}
+                        position={[model.position.x, model.position.y, model.position.z]}
+                        rotateY={degToRad(model.rotationY)}
+                        onHover={(material) => {
+                            if (hoveredMaterialRef.current) {
+                                hoveredMaterialRef.current.emissiveIntensity = 0;
+                            }
+                            hoveredMaterialRef.current = material;
+                            hoveredMaterialRef.current.emissiveIntensity = 0.3;
+                        }}
+                        onHoverExit={() => {
+                            if (hoveredMaterialRef.current) {
+                                hoveredMaterialRef.current.emissiveIntensity = 0;
+                            }
+                            hoveredMaterialRef.current = null;
+                        }}
+                        onSelect={(boundingBox) => {
+                            if (selectedBoundingBoxRef.current) {
+                                selectedBoundingBoxRef.current.visible = false;
+                            }
+                            selectedBoundingBoxRef.current = boundingBox;
+                            boundingBox.visible = true;
+                            setSelectedSection(section);
+                        }}
+                    />
+                )
+            })
+            return sectionShelves;
+        }
+        else {
+            return null;
+        }
+    })), [showShelves, enableShelfSelect]);
 
     const gridPoints = useMemo(() => {
         const points = [];
@@ -99,7 +125,9 @@ function SupermarketMap ({showGrid=false, editGrid=false, enableShelfSelect=true
                                 if (editGrid) {
                                     setSelectedGridPoint(value)
                                 }
-                                onGridClick(value);
+                                if (onGridClick) {
+                                    onGridClick(value);
+                                }
                             }}
                         />
                     )
@@ -109,17 +137,61 @@ function SupermarketMap ({showGrid=false, editGrid=false, enableShelfSelect=true
         return points;
     }, [showGrid, selectedGridPoint])
 
+    const trolleyMeshes = useMemo(() => {
+        let meshes = [];
+        if (trolleys) {
+            meshes = trolleys.map((trolleyData, index) => {
+                const coords = physicalCoordinatesToThreeCoordinates(trolleyData.coordinates.x, trolleyData.coordinates.y);
+                return (
+                    <TrolleyMesh key={index} trolleyData={trolleyData} position={[coords.x, 3, coords.z-7]}
+                        onClick={() => {
+                            console.log(123)
+                        }}
+                    />
+                )}
+            )
+        }
+        return meshes;
+    }, [trolleys])
+
+    const trolleyHistoryData = useMemo(() => {
+        return trolleyHistoryQuery.data ? trolleyHistoryQuery.data.slice(0, historyQueryLimit) : []
+    }, [trolleyHistoryQuery, historyQueryLimit])
+
+    const historyLine = useMemo(() => {
+        if (trolleyHistoryData) {
+            const points = trolleyHistoryData.map((data) => {
+                const coords = data.coordinates;
+                const threeCoords = physicalCoordinatesToThreeCoordinates(coords.x, coords.y);
+                return threeCoords;
+            });
+            const lines = [];
+            for (let i = 1; i < points.length; i++) {
+                const start = points[i-1];
+                const end = points[i];
+                const p = [
+                    start.x, 1, start.z,
+                    end.x, 1, end.z
+                ];
+                lines.push(<Line key={i} points={p} width={1.5} opacity={0.3} color={new THREE.Color( 0x268bff )} />);
+            }
+            return lines;
+        }
+        else {
+            return null
+        }
+    }, [trolleyHistoryData])
+
     const setupScene = useCallback(state => {
         const renderer = state.gl;
         renderer.setClearColor(0xf2f2f2);
         //const { width, height } = state.size;
-
         setSceneLoading(false);
 
     }, []);
 
     return (
-        <Box {...props}
+        <Box ref={ref} {...props}
             style={{
                 position: 'relative',
                 ...props.style
@@ -143,22 +215,64 @@ function SupermarketMap ({showGrid=false, editGrid=false, enableShelfSelect=true
                 </Box>
 
             }
+            {/* {!sceneLoading && 
+
+            } */}
             {!sceneLoading && 
-                <Button variant='light' color='pink'
+                <Stack
                     style={{
                         position: 'absolute',
                         right: 0,
                         top: 0,
-                        zIndex: 1
-                    }}
-                    onClick={() => {
-                        if(controlsRef.current) {
-                            controlsRef.current.reset();
-                        }
+                        zIndex: 1,
+                        height: '100%',
+                        width: '30%'
+                        //maxHeight: '100%',
                     }}
                 >
-                    Reset View
-                </Button>
+                    <Button variant='light' color='pink'
+                        //style={{ flex: selectedTrolley ? 1: null }}
+                        onClick={() => {
+                            if(controlsRef.current) {
+                                controlsRef.current.reset();
+                            }
+                        }}
+                    >
+                        Reset View
+                    </Button>
+                    {selectedTrolley &&
+                        <Stack style={{
+                            background: 'rgba(255,255,255,0.5)',
+                            borderRadius: '0.5em',
+                            width: '100%'
+                        }} >
+                            {/* <NumberInput label="Limit to:" value={historyQueryLimit} min={1} step={1} max={15}
+                                onChange={(val) => {
+                                    if (val && val >= 1) {
+                                        setHistoryQueryLimit(Math.round(val))
+                                    }
+                                }}
+                            /> */}
+                            <Text p={4} weight={700} align='start' >
+                                Limit to:
+                            </Text>
+                            <Slider 
+                                style={{
+                                    width: '100%'
+                                }}
+                                labelAlwaysOn min={1} max={15} defaultValue={historyQueryLimit} onChangeEnd={setHistoryQueryLimit}
+                            />
+                        </Stack>
+                    }
+
+                    <TrolleyHistory
+                        selectedTrolley={selectedTrolley} deselectTrolley={deselectTrolley}
+                        historyData={trolleyHistoryData} loading={trolleyHistoryQuery.isLoading}
+                        style={{
+                            flex: 5,
+                        }}
+                    />
+                </Stack>
             }
             <Canvas
                 flat
@@ -199,19 +313,22 @@ function SupermarketMap ({showGrid=false, editGrid=false, enableShelfSelect=true
                 <directionalLight position={[0, 10, 30]} color={0xffffff} intensity={0.3} target={floorRef.current} />
                 <directionalLight position={[0, 10, -30]} color={0xffffff} intensity={0.3} target={floorRef.current} />
 
-                <FloorMesh ref={floorRef} position={[0, 0, 0]} length={generalDimensions.length} width={generalDimensions.width} />
+                <FloorMesh ref={floorRef} position={[0, 0, 0]} length={threeDimensions.length} width={threeDimensions.width} />
                 { shelves }
                 { gridPoints }
-                {/* <mesh position={[-generalDimensions.length/2, 0, 0]} >
+                { trolleyMeshes }
+                { historyLine }
+
+                {/* <mesh position={[-threeDimensions.length/2, 0, 0]} >
                     <sphereBufferGeometry />
                     <meshStandardMaterial color="hotpink" />
                 </mesh> */}
-                {/* <ShelfMesh metadata={{type: 'shelf1'}} position={[-generalDimensions.length/2, 0, 20]} rotation={[0, degToRad(90), 0]} />
-                <ShelfMesh metadata={{type: 'shelf1'}} position={[-generalDimensions.length/2, 0, -20]} rotation={[0, degToRad(-90), 0]} /> */}
+                {/* <ShelfMesh metadata={{type: 'shelf1'}} position={[-threeDimensions.length/2, 0, 20]} rotation={[0, degToRad(90), 0]} />
+                <ShelfMesh metadata={{type: 'shelf1'}} position={[-threeDimensions.length/2, 0, -20]} rotation={[0, degToRad(-90), 0]} /> */}
 
             </Canvas>
         </Box>
     )
-}
+});
 
 export default SupermarketMap;

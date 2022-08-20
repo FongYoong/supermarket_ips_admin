@@ -22,7 +22,7 @@ shelf5: "/images/map/textures/metal.jpg",
 
 const boundingBoxMaterial = new THREE.LineBasicMaterial( {
     color: 0xff0000,
-    linewidth: 8
+    linewidth: 1
 });
 
 // eslint-disable-next-line react/display-name

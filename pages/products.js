@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic'
 import { Image } from '../components/Image';
 import { Box, Button, Text, Skeleton, Card, Group, Stack, Badge, MultiSelect, ActionIcon, TextInput, Divider, useMantineTheme } from '@mantine/core';
-import { useDatabaseSnapshot  } from "@react-query-firebase/database";
-import { getProductsRef, toArray } from '../lib/clientDb'
+import { useDatabaseSnapshot } from "@react-query-firebase/database";
+import { getProductsRef, toArray } from '../lib/clientDb';
 import { productCategories } from '../lib/supermarket_products';
 const productCategoriesForFilter = productCategories.map((cat) => {
   return {

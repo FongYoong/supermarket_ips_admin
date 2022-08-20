@@ -38,6 +38,7 @@ function PageHeader({title, navbarOpened, setNavbarOpened, showNavbar=true}) {
                             size="sm"
                             color={theme.colors.gray[6]}
                             mr="xl"
+                            ml='sm'
                         />
                     </MediaQuery>
                 }
