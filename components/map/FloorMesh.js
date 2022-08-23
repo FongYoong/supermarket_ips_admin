@@ -1,4 +1,4 @@
-import { forwardRef, useMemo } from 'react'
+import { forwardRef } from 'react'
 import * as THREE from "three";
 import { useTexture } from '@react-three/drei';
 

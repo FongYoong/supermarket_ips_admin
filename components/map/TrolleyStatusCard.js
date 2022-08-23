@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Divider, Stack, Group, Popover, Button, Box, Text, MediaQuery } from '@mantine/core';
+import { Card, Divider, Stack, Group, Popover, Button, Box, Text } from '@mantine/core';
 import { Image } from '../Image';
 import { useDatabaseValue, useDatabaseUpdateMutation } from "@react-query-firebase/database";
 import { getTrolleyConfigRef } from '../../lib/clientDb';

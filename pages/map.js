@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react';
-import { Stack, Group, Checkbox, Button, Box, Text, MediaQuery } from '@mantine/core';
+import { Stack, Group, Checkbox } from '@mantine/core';
 import SupermarketMap from '../components/map/SupermarketMap';
 import TrolleyStatusCard from '../components/map/TrolleyStatusCard';
 import { useDatabaseSnapshot  } from "@react-query-firebase/database";
-import { stringToPhysicalCoordinates } from '../lib/supermarket_grid';
 import { getTrolleysDataRef, toArray } from '../lib/clientDb';
+import { stringToPhysicalCoordinates } from '../lib/supermarket_grid';
 import { RaceBy } from '@uiball/loaders';
 // import { trolleys } from '../lib/supermarket_trolleys';
 // import { GrOverview } from 'react-icons/gr';

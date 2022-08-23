@@ -1,5 +1,5 @@
 import { forwardRef, useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Stack, Group, Text, NumberInput, Button, Box, Slider } from '@mantine/core';
+import { Stack, Text, Button, Box, Slider } from '@mantine/core';
 import { useDatabaseSnapshot  } from "@react-query-firebase/database";
 import { getTrolleyHistoryRef, toArray } from '../../lib/clientDb';
 import * as THREE from "three";
@@ -57,9 +57,10 @@ const SupermarketMap = forwardRef(({
     const cameraRef = useRef();
     const floorRef = useRef();
     const hoveredMaterialRef = useRef();
-    const selectedBoundingBoxRef = useRef();
+    // const selectedBoundingBoxRef = useRef();
     const [selectedGridPoint, setSelectedGridPoint] = useState(initialSelectedGridPoint);
     const [selectedSection, setSelectedSection] = useState(null);
+    const [selectedSectionIndex, setSelectedSectionIndex] = useState(null);
     const [sceneLoading, setSceneLoading] = useState(true);
 
     useEffect(() => {
@@ -75,7 +76,11 @@ const SupermarketMap = forwardRef(({
                     <ShelfMesh key={`shelves${i}-${j}`}
                         enabled={categories.length > 0 && categories.includes(section.productCategory) || categories.length <= 0 }
                         enableSelect={enableShelfSelect}
-                        metadata={model}
+                        selected={selectedSectionIndex === `${i}-${j}`}
+                        metadata={{
+                            ...model,
+                            productCategory: section.productCategory 
+                        }}
                         position={[model.position.x, model.position.y, model.position.z]}
                         rotateY={degToRad(model.rotationY)}
                         onHover={(material) => {
@@ -91,13 +96,13 @@ const SupermarketMap = forwardRef(({
                             }
                             hoveredMaterialRef.current = null;
                         }}
-                        onSelect={(boundingBox) => {
-                            if (selectedBoundingBoxRef.current) {
-                                selectedBoundingBoxRef.current.visible = false;
-                            }
-                            selectedBoundingBoxRef.current = boundingBox;
-                            boundingBox.visible = true;
+                        onSelect={() => {
                             setSelectedSection(section);
+                            setSelectedSectionIndex(`${i}-${j}`);
+                        }}
+                        onDeselect={() => {
+                            setSelectedSection(null);
+                            setSelectedSectionIndex(null);
                         }}
                     />
                 )
@@ -107,7 +112,7 @@ const SupermarketMap = forwardRef(({
         else {
             return null;
         }
-    })), [showShelves, enableShelfSelect]);
+    })), [showShelves, enableShelfSelect, selectedSectionIndex]);
 
     const gridPoints = useMemo(() => {
         const points = [];
@@ -226,7 +231,7 @@ const SupermarketMap = forwardRef(({
                         top: 0,
                         zIndex: 1,
                         height: '100%',
-                        width: '30%'
+                        width: '20%'
                         //maxHeight: '100%',
                     }}
                 >

@@ -1,5 +1,6 @@
-import { useRef, useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, Avatar, Stack, Group, Text } from '@mantine/core';
+import { RaceBy } from '@uiball/loaders'
 import { calculateTimeAgo } from '../../lib/utils';
 
 function ChatListItem({selected=false, id, name, subtitle, latestDate, onClick, ...props}) {
@@ -21,21 +22,26 @@ function ChatListItem({selected=false, id, name, subtitle, latestDate, onClick, 
             '&:hover': {
               transform: 'scale(1.05)'
             },
-            cursor: 'pointer'
+            cursor: 'pointer',
+            width: '100%'
           }}
           onClick={onClick}
           {...props}
         >
-            <Group spacing={4} >
-                <Avatar size='md' radius="xl" />
-                <Stack spacing={4} >
-                    <Text size='sm' weight={600} lineClamp={1} >
-                        {name}
-                    </Text>
-                    <Text color="dimmed" size='xs' weight={300} lineClamp={1} >
-                        {subtitle}
-                    </Text>
-                </Stack>
+            <Group spacing={4}
+                position='apart'
+            >
+                <Group>
+                    <Avatar size='md' radius="xl" />
+                    <Stack spacing={4} >
+                        <Text size='sm' weight={600} lineClamp={1} >
+                            {name}
+                        </Text>
+                        <Text color="dimmed" size='xs' weight={300} lineClamp={1} >
+                            {subtitle}
+                        </Text>
+                    </Stack>
+                </Group>
                 <Stack align='center' justify='center' >
                     <Text size='sm' weight={300} >
                         {timeStatus ? timeStatus + ' ago' : ''} 
@@ -46,16 +52,35 @@ function ChatListItem({selected=false, id, name, subtitle, latestDate, onClick, 
     )
 }
 
-function ChatList ({selectedUser, data, onClick, ...props}) {
+function ChatList ({loading=false, selectedUser, data, onClick, ...props}) {
 
     return (
-        <Stack {...props} >
-            {
-                data.map((item, index) => 
-                    <ChatListItem key={index} selected={selectedUser ? selectedUser.id === item.id : false} {...item}
-                        onClick={() => onClick(item)}
-                    />
-                )
+        <Stack align='center' justify='center' {...props} >
+            {loading ? 
+                <RaceBy
+                    style={{
+
+                    }}
+                    lineWeight={5}
+                    speed={1.4} 
+                    color="black"
+                />
+                :
+                <>
+                    {
+                        data.length > 0 ?
+                            data.map((item, index) => 
+                                <ChatListItem key={index} selected={selectedUser ? selectedUser.id === item.id : false} {...item}
+                                        onClick={() => onClick(item)}
+                                    />
+                                )
+                        :
+                            <Text>
+                                This chat list is empty.
+                            </Text>
+                    }
+                </>
+
             }
         </Stack>
     )

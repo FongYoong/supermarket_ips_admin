@@ -1,8 +1,9 @@
-import { forwardRef, useState, useRef, useEffect, useMemo } from 'react'
+import { forwardRef, useRef, useEffect, useMemo } from 'react'
+import { Text } from '@mantine/core';
 import * as THREE from "three";
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import { useLoader } from '@react-three/fiber'
-import { useTexture } from '@react-three/drei'
+import { useTexture, Html } from '@react-three/drei'
 
 const modelAssets = {
     shelf1: "/models/shelf1.obj",
@@ -26,7 +27,10 @@ const boundingBoxMaterial = new THREE.LineBasicMaterial( {
 });
 
 // eslint-disable-next-line react/display-name
-export const ShelfMesh = forwardRef(({metadata, rotateY, enabled=true, enableSelect=true, onHover, onHoverExit, onSelect, ...props}, ref) => {
+export const ShelfMesh = forwardRef(({metadata, rotateY,
+        enabled=true, enableSelect=true, selected=false, onHover, onHoverExit, onSelect, onDeselect, ...props
+    }, ref) => {
+    
     const loadedModel = useLoader(OBJLoader, modelAssets[metadata.type], (loader) => {
     
     });
@@ -79,17 +83,23 @@ export const ShelfMesh = forwardRef(({metadata, rotateY, enabled=true, enableSel
             model.rotation.set(0, rotateY, 0);
         }
     }, [model, rotateY])
+
+    useEffect(() => {
+        if (enableSelect && boundingBoxRef.current) {
+            boundingBoxRef.current.visible = selected;
+        }
+    }, [enableSelect, selected])
     
     return (
         <mesh ref={ref} {...props}
             onPointerEnter={(e) => {
-                if (enabled) {
+                if (enabled && enableSelect) {
                     e.stopPropagation();
                     onHover(material);
                 }
             }}
             onPointerLeave={(e) => {
-                if (enabled) {
+                if (enabled && enableSelect) {
                     e.stopPropagation();
                     onHoverExit();
                 }
@@ -97,12 +107,33 @@ export const ShelfMesh = forwardRef(({metadata, rotateY, enabled=true, enableSel
             onClick={(e) => {
                 if (enabled && enableSelect) {
                     e.stopPropagation();
-                    onSelect(boundingBoxRef.current);
+                    if (selected) {
+                        onDeselect();
+                    }
+                    else {
+                        onSelect(metadata);
+                    }
                 }
             }}
         >
             <primitive object={model} >
             </primitive>
+            <Html position={[0, 0, 0]} center={true} 
+                style={{ 
+                    pointerEvents: "none", display: selected ? "block" : "none"
+                }}
+            >
+                <div style={{
+                    backgroundColor: 'rgba(111, 0, 158, 0.8)',
+                    borderRadius: '8',
+                    padding: 4,
+                }}>
+                    <Text color='white' size='sm' weight={300} align='center' >
+                        {metadata.productCategory}
+                    </Text>
+                </div>
+
+            </Html>
         </mesh>
     )
 });

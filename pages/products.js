@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import dynamic from 'next/dynamic'
 import { Image } from '../components/Image';
 import { Box, Button, Text, Skeleton, Card, Group, Stack, Badge, MultiSelect, ActionIcon, TextInput, Divider, useMantineTheme } from '@mantine/core';

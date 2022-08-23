@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react';
-import { Stack, Group, Textarea, Button } from '@mantine/core';
+import { Stack, Group } from '@mantine/core';
 import { useDatabaseSnapshot } from "@react-query-firebase/database";
 import { getChatsRef, addChatMessage, toArray, deleteAllChatMessages } from '../lib/clientDb';
 import { generateNameFromSeed } from '../lib/utils';
 import ChatList from '../components/chat/ChatList';
-import { FiSend } from 'react-icons/fi';
 import MessageList from '../components/chat/MessageList';
+import LocateTrolleyModal from '../components/map/LocateTrolleyModal';
 
 export default function CustomerSupport() {
 
   const [selectedUserChat, setSelectedUserChat] = useState(undefined);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationTrolleyId, setLocationTrolleyId] = useState(undefined);
 
   const chatsRef = getChatsRef();
   const chatsQuery = useDatabaseSnapshot(["chats"], chatsRef,
@@ -64,8 +66,7 @@ export default function CustomerSupport() {
         const isUser = message.sender === "user";
         return {
           position: isUser ? "left" : "right",
-          content: message.content,
-          dateCreated: message.dateCreated
+          ...message
         }
       })
       :
@@ -92,11 +93,17 @@ export default function CustomerSupport() {
     });
   }
 
+  const onLocateTrolley = (trolleyId) => {
+    setShowLocationModal(true)
+    setLocationTrolleyId(trolleyId)
+  }
+
   return (
     <Stack style={{
       width: '100%',
       height: '100%'
     }}>
+      <LocateTrolleyModal show={showLocationModal} setShow={setShowLocationModal} trolleyId={locationTrolleyId} />
       <Group style={{
           width: '100%',
           height: '100%'
@@ -106,10 +113,11 @@ export default function CustomerSupport() {
         noWrap
         spacing={4}
       >
-        <ChatList 
+        <ChatList
           style={{
             flex: 1
           }}
+          loading={chatsQuery.isLoading}
           data={chatUsers}
           selectedUser={selectedUserChat}
           onClick={(user) => {
@@ -126,6 +134,7 @@ export default function CustomerSupport() {
           selectedUser={selectedUserChat}
           onSend={onSendMessage}
           onDeleteAll={onDeleteAllMessages}
+          onLocateTrolley={onLocateTrolley}
         />
       </Group>
     </Stack>
