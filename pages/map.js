@@ -34,6 +34,7 @@ export default function Map() {
         });
         return trolleysData;
       },
+      refetchOnMount: 'always'
   });
 
   const [selectedTrolleyData, setSelectedTrolleyData] = useState(undefined);

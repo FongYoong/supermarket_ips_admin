@@ -51,6 +51,7 @@ const SupermarketMap = forwardRef(({
           }).reverse();
           return historyData;
         },
+        refetchOnMount: 'always'
     });
 
     const controlsRef = useRef();

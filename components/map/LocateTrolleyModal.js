@@ -28,11 +28,10 @@ function LocateTrolleyModal({trolleyId, show, setShow}) {
             }
             return null;
         },
+        refetchOnMount: 'always'
     });
 
     const trolleyData = trolleyDataQuery.data;
-
-    console.log(trolleyDataQuery.data)
 
     return (
         <Modal

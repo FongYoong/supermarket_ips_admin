@@ -2,9 +2,15 @@
 * [🌐 Web Demo](http://supermarket-ips-admin.vercel.app/)
 * [Next.js](https://nextjs.org/) as the foundation
 * [Mantine](https://mantine.dev/) as the design system
-* [Firebase](https://firebase.google.com/)** as the backend for authentication and persistent data
+* [Firebase Realtime Database](https://firebase.google.com/) as the backend for authentication and persistent data
 * [Cloudinary](https://cloudinary.com/) for image storage
 
+***
+
+### Development
+* `npm run dev`
+
+***
 
 <details>
 <summary>Firebase Rules</summary>
