@@ -30,7 +30,7 @@ function MessageListItem({position, content, dateCreated, trolley, onLocateTroll
                     {...props}
                     >
                         <Text size='sm' weight={300} >
-                            {content} {trolley ? trolley : ''}
+                            {content}
                         </Text>
                     </Group>
                     {trolley && 

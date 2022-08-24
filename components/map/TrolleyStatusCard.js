@@ -23,8 +23,12 @@ function TrolleyStatusCard({data, viewPastData}) {
 
     const trolleyConfigRef = getTrolleyConfigRef(data.id);
     const trolleyConfigQuery = useDatabaseValue(["trolley_config", data.id], trolleyConfigRef, {
-        subscribe: true
-    });
+        subscribe: true,
+    },
+    {
+        refetchOnMount: 'always'
+    }
+    );
     const updateTrolleyConfigQuery = useDatabaseUpdateMutation(trolleyConfigRef);
     const enabled = trolleyConfigQuery.isSuccess && trolleyConfigQuery.data.enabled;
     const [online, setOnline] = useState(isOnline(trolleyData.dateCreated));
