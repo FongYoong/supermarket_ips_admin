@@ -1,6 +1,7 @@
-import { Header, MediaQuery, Burger, Group, Title, Divider, useMantineTheme } from '@mantine/core';
+import { Header, MediaQuery, Burger, Group, Title, Divider, ActionIcon, useMantineTheme } from '@mantine/core';
 import { LazyMotion, AnimatePresence, domAnimation, m } from "framer-motion";
 import CompanyIcon from '../components/CompanyIcon';
+import { AiFillGithub } from 'react-icons/ai';
 
 export const animation = {
     name: "Fade",
@@ -43,6 +44,12 @@ function PageHeader({title, navbarOpened, setNavbarOpened, showNavbar=true}) {
                     </MediaQuery>
                 }
                 <CompanyIcon style={{width: '20vw'}} />
+                <a target="_blank" href="https://github.com/FongYoong/supermarket_ips_admin" rel="noopener noreferrer">
+                    <ActionIcon variant='filled' color='dark'>
+                        <AiFillGithub size='2em' />
+                    </ActionIcon>
+                </a>
+
                 <Divider orientation='vertical' />
                 <MediaQuery smallerThan="xs" styles={{ fontSize: 18 }}>
                     <Title order={1}>
