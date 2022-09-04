@@ -5,6 +5,10 @@
 * [Firebase Realtime Database](https://firebase.google.com/) as the backend for authentication and persistent data
 * [Cloudinary](https://cloudinary.com/) for image storage
 
+### Screenshots
+
+
+
 ***
 
 ### Development
@@ -12,8 +16,7 @@
 
 ***
 
-<details>
-<summary>Firebase Rules</summary>
+### Firebase Rules
 ```
 {
   "rules": {
@@ -57,4 +60,3 @@
   }
 }
 ```
-</details>
